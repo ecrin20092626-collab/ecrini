@@ -1,0 +1,1005 @@
+import { useState, useEffect } from "react";
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const DAYS = ["PAZARTESİ","SALI","ÇARŞAMBA","PERŞEMBE","CUMA","CUMARTESİ","PAZAR"];
+
+const DAY_PLAN = {
+  "PAZARTESİ": {
+    type: "glute",
+    label: "🍑 GLUTE + HAMSTRİNG",
+    color: "#f472b6",
+    kcal: 2300,
+    workout: {
+      warmup: "5 dk bant yürüyüş + 10 kalça çevresi + 15 glute bridge ısınma",
+      exercises: [
+        { name:"Hip Thrust", detail:"Smith/Barel", sets:"4", reps:"10-12", kg:"20-30 kg", note:"Köprünün en üstünde 1 sn tut. Sırt düz, çene göğüste.", tag:"👑 KRAL" },
+        { name:"Romanian Deadlift", detail:"Dumbbell", sets:"3", reps:"10-12", kg:"2×10-15 kg", note:"Kalçayla it, dizler hafif bükük. Hamstringleri hissettir.", tag:"Hamstring+Glute" },
+        { name:"Sumo Squat", detail:"Dumbbell", sets:"3", reps:"12-15", kg:"15-20 kg", note:"Ayaklar geniş, parmaklar dışa. Aşağıda 1 sn dur.", tag:"İç Bacak+Glute" },
+        { name:"Cable Kickback", detail:"Kablo", sets:"3", reps:"15/bacak", kg:"5-8 kg", note:"Kalçayı sıkarak it, beli bükme. Kontrollü in.", tag:"Üst Glute" },
+        { name:"Abductor Makine", detail:"Makine", sets:"3", reps:"15-20", kg:"Orta", note:"Yavaş ve kontrollü. Yan kalçayı hissettir.", tag:"Dış Kalça" },
+      ],
+      cooldown:"Glute stretch 30sn×2, pigeon pose 45sn×2 her bacak"
+    },
+    meals: [
+      { time:"07:30", name:"Kahvaltı", emoji:"🌅", items:[
+        {n:"Yulaf ezmesi (çiğ)",g:60,p:8,k:40,f:4},
+        {n:"Muz",g:100,p:1,k:23,f:0},
+        {n:"Yumurta (haşlanmış)",g:150,p:18,k:0,f:15},
+        {n:"Süt (%2)",g:150,p:5,k:7,f:3},
+      ]},
+      { time:"10:30", name:"Ara Öğün", emoji:"🍎", items:[
+        {n:"Greek yoğurt (%2)",g:150,p:15,k:6,f:3},
+        {n:"Ceviz",g:20,p:3,k:2,f:13},
+        {n:"Elma",g:150,p:0,k:20,f:0},
+      ]},
+      { time:"13:00", name:"Öğle", emoji:"🍗", items:[
+        {n:"Tavuk göğsü (ızgara)",g:150,p:45,k:0,f:5},
+        {n:"Esmer pirinç (pişmiş)",g:150,p:3,k:38,f:1},
+        {n:"Brokoli+sebze",g:150,p:3,k:8,f:0},
+        {n:"Zeytinyağı",g:10,p:0,k:0,f:10},
+      ]},
+      { time:"16:00", name:"Antrenman Öncesi ⚡", emoji:"⚡", items:[
+        {n:"Muz",g:120,p:1,k:30,f:0},
+        {n:"Yulaf ezmesi",g:30,p:4,k:20,f:2},
+        {n:"Fıstık ezmesi (doğal)",g:15,p:4,k:3,f:8},
+      ]},
+      { time:"19:00", name:"Antrenman Sonrası 💪", emoji:"💪", items:[
+        {n:"Kırmızı et / somon",g:150,p:40,k:0,f:10},
+        {n:"Tatlı patates (fırında)",g:200,p:3,k:40,f:0},
+        {n:"Salata+zeytinyağı",g:100,p:2,k:5,f:10},
+      ]},
+      { time:"21:30", name:"Gece Öğünü 🌙", emoji:"🌙", items:[
+        {n:"Süzme yoğurt",g:150,p:18,k:5,f:4},
+        {n:"Bal (1 tsp)",g:10,p:0,k:8,f:0},
+      ]},
+    ]
+  },
+  "SALI": {
+    type: "upper",
+    label: "💪 ÜST VÜCUT",
+    color: "#a78bfa",
+    kcal: 2300,
+    workout: {
+      warmup: "5 dk hafif kardiyo + omuz çevresi açma hareketleri",
+      exercises: [
+        { name:"Dumbbell Bench Press", detail:"Düz Bank", sets:"3", reps:"10-12", kg:"2×8-12 kg", note:"Göğüs açık, omuzlar aşağıda. Kontrollü in.", tag:"Göğüs" },
+        { name:"Seated Row", detail:"Makine", sets:"3", reps:"10-12", kg:"Orta", note:"Kürek kemiklerini birleştir, sırt dik.", tag:"Sırt" },
+        { name:"Lat Pulldown", detail:"Kablo", sets:"3", reps:"10-12", kg:"Orta", note:"Göğse çek, dirsekler aşağı.", tag:"Kanat" },
+        { name:"Dumbbell Shoulder Press", detail:"Oturarak", sets:"3", reps:"12", kg:"2×6-10 kg", note:"Dirsekler 90°, sırt düz.", tag:"Omuz" },
+        { name:"Bicep Curl + Tricep", detail:"Dumbbell", sets:"2+2", reps:"12", kg:"2×5-8 kg", note:"Yavaş ve kontrollü, tam hareket açısı.", tag:"Kol" },
+        { name:"Plank", detail:"Zemin", sets:"3", reps:"40 sn", kg:"—", note:"Kalça düz, karın içeride, nefes al.", tag:"Core" },
+      ],
+      cooldown:"Omuz+göğüs germe 30sn, boyun germe, 10 dk yürüyüş opsiyonel"
+    },
+    meals: [
+      { time:"07:30", name:"Kahvaltı", emoji:"🌅", items:[
+        {n:"Yulaf ezmesi",g:60,p:8,k:40,f:4},
+        {n:"Yumurta (omlet)",g:180,p:22,k:1,f:18},
+        {n:"Domates+salatalık",g:150,p:1,k:5,f:0},
+        {n:"Tam buğday ekmek",g:50,p:4,k:22,f:1},
+      ]},
+      { time:"10:30", name:"Ara Öğün", emoji:"🍌", items:[
+        {n:"Muz",g:120,p:1,k:28,f:0},
+        {n:"Fıstık ezmesi",g:20,p:5,k:4,f:10},
+      ]},
+      { time:"13:00", name:"Öğle", emoji:"🐟", items:[
+        {n:"Ton balığı (konserve, süzülmüş)",g:150,p:35,k:0,f:3},
+        {n:"Makarna (tam buğday, pişmiş)",g:200,p:6,k:42,f:1},
+        {n:"Zeytinyağı+limon sos",g:10,p:0,k:0,f:10},
+        {n:"Mevsim salata",g:100,p:1,k:4,f:0},
+      ]},
+      { time:"16:00", name:"Ara Öğün", emoji:"🧀", items:[
+        {n:"Lor peyniri",g:100,p:12,k:3,f:5},
+        {n:"Tam buğday kraker",g:30,p:3,k:18,f:2},
+        {n:"Ceviz",g:15,p:2,k:2,f:10},
+      ]},
+      { time:"19:00", name:"Akşam", emoji:"🍽️", items:[
+        {n:"Hindi göğsü (ızgara)",g:150,p:38,k:0,f:4},
+        {n:"Bulgur pilavı (pişmiş)",g:180,p:5,k:40,f:1},
+        {n:"Zeytinyağlı sebze",g:150,p:2,k:10,f:5},
+      ]},
+      { time:"21:30", name:"Gece Öğünü", emoji:"🌙", items:[
+        {n:"Süzme yoğurt",g:150,p:18,k:5,f:4},
+        {n:"Tarçın",g:2,p:0,k:1,f:0},
+      ]},
+    ]
+  },
+  "ÇARŞAMBA": {
+    type: "rest",
+    label: "🚶 AKTİF DİNLENME",
+    color: "#34d399",
+    kcal: 2100,
+    workout: {
+      warmup: "—",
+      exercises: [],
+      note: "Bugün spor salonu yok! Ama aktif kal:",
+      restActivities:[
+        "🚶 20-30 dk tempolu yürüyüş (zorunlu!)",
+        "🧘 10-15 dk yoga / esneme rutini",
+        "🛁 Sıcak duş + köpük silindir (bacak kaslarına)",
+        "💧 Ekstra su iç — en az 3 litre",
+        "😴 Erkenden uyu — kaslar bu gece büyüyor",
+      ],
+      cooldown:""
+    },
+    meals: [
+      { time:"08:00", name:"Kahvaltı", emoji:"🌅", items:[
+        {n:"Yulaf ezmesi",g:60,p:8,k:40,f:4},
+        {n:"Yumurta (haşlanmış)",g:120,p:14,k:0,f:10},
+        {n:"Muz",g:100,p:1,k:23,f:0},
+        {n:"Süt",g:150,p:5,k:7,f:3},
+      ]},
+      { time:"11:00", name:"Ara Öğün", emoji:"🍊", items:[
+        {n:"Portakal / mandalina",g:150,p:1,k:18,f:0},
+        {n:"Badem (çiğ)",g:25,p:5,k:4,f:14},
+      ]},
+      { time:"13:30", name:"Öğle", emoji:"🥗", items:[
+        {n:"Tavuk göğsü",g:130,p:39,k:0,f:4},
+        {n:"Kepekli makarna (pişmiş)",g:180,p:6,k:38,f:1},
+        {n:"Izgara sebze",g:150,p:2,k:10,f:3},
+      ]},
+      { time:"16:30", name:"Ara Öğün", emoji:"🧆", items:[
+        {n:"Humus",g:80,p:5,k:12,f:6},
+        {n:"Havuç dilimi",g:100,p:1,k:10,f:0},
+        {n:"Tam buğday kraker",g:20,p:2,k:12,f:1},
+      ]},
+      { time:"19:30", name:"Akşam", emoji:"🐟", items:[
+        {n:"Somon (fırında)",g:150,p:33,k:0,f:18},
+        {n:"Tatlı patates",g:180,p:3,k:36,f:0},
+        {n:"Buharda brokoli",g:150,p:3,k:8,f:0},
+      ]},
+      { time:"21:30", name:"Gece", emoji:"🌙", items:[
+        {n:"Greek yoğurt",g:150,p:15,k:6,f:3},
+        {n:"Bal",g:8,p:0,k:6,f:0},
+      ]},
+    ]
+  },
+  "PERŞEMBE": {
+    type: "glute",
+    label: "🍑 GLUTE + QUAD",
+    color: "#f472b6",
+    kcal: 2300,
+    workout: {
+      warmup: "5 dk bant yürüyüş + 20 bodyweight squat + fire hydrant 15×2",
+      exercises: [
+        { name:"Leg Press", detail:"Yüksek Ayak", sets:"4", reps:"10-12", kg:"Orta-Ağır", note:"Ayakları platformun üst kısmına koy → daha fazla glute!", tag:"👑 Glute+Quad" },
+        { name:"Bulgarian Split Squat", detail:"Dumbbell", sets:"3", reps:"10/bacak", kg:"2×8-12 kg", note:"Ön bacak öne, sırt banka. Diz zemine değsin.", tag:"Tek Bacak Güç" },
+        { name:"Hip Thrust (Bantlı)", detail:"Direnç Bandı", sets:"3", reps:"15-20", kg:"Bant", note:"Hafif ama çok rep. Yanmayı hissettir!", tag:"🔥 Pump" },
+        { name:"Leg Extension", detail:"Makine", sets:"3", reps:"12-15", kg:"Hafif-Orta", note:"Tam açıl tam kapan. Quad izolasyon.", tag:"Ön Uyluk" },
+        { name:"Standing Hip Abduction", detail:"Direnç Bandı", sets:"3", reps:"20/bacak", kg:"Bant", note:"Ayakta, yana aç. Gluteus medius için.", tag:"Dış Kalça" },
+      ],
+      cooldown:"Quad stretch 30sn, hamstring uzatma, köpük silindir bacaklara"
+    },
+    meals: [
+      { time:"07:30", name:"Kahvaltı", emoji:"🌅", items:[
+        {n:"Yulaf ezmesi",g:60,p:8,k:40,f:4},
+        {n:"Muz",g:100,p:1,k:23,f:0},
+        {n:"Yumurta (haşlanmış)",g:150,p:18,k:0,f:15},
+        {n:"Süt (%2)",g:150,p:5,k:7,f:3},
+      ]},
+      { time:"10:30", name:"Ara Öğün", emoji:"🍎", items:[
+        {n:"Greek yoğurt (%2)",g:150,p:15,k:6,f:3},
+        {n:"Ceviz",g:20,p:3,k:2,f:13},
+        {n:"Elma",g:150,p:0,k:20,f:0},
+      ]},
+      { time:"13:00", name:"Öğle", emoji:"🍗", items:[
+        {n:"Tavuk göğsü (ızgara)",g:150,p:45,k:0,f:5},
+        {n:"Esmer pirinç (pişmiş)",g:150,p:3,k:38,f:1},
+        {n:"Sebze karışımı",g:150,p:3,k:8,f:0},
+        {n:"Zeytinyağı",g:10,p:0,k:0,f:10},
+      ]},
+      { time:"16:00", name:"Antrenman Öncesi ⚡", emoji:"⚡", items:[
+        {n:"Muz",g:120,p:1,k:30,f:0},
+        {n:"Yulaf",g:30,p:4,k:20,f:2},
+        {n:"Fıstık ezmesi",g:15,p:4,k:3,f:8},
+      ]},
+      { time:"19:00", name:"Antrenman Sonrası 💪", emoji:"💪", items:[
+        {n:"Somon / tavuk",g:150,p:40,k:0,f:10},
+        {n:"Tatlı patates",g:200,p:3,k:40,f:0},
+        {n:"Yeşil salata",g:100,p:2,k:5,f:5},
+      ]},
+      { time:"21:30", name:"Gece", emoji:"🌙", items:[
+        {n:"Süzme yoğurt",g:150,p:18,k:5,f:4},
+        {n:"Bal",g:8,p:0,k:6,f:0},
+      ]},
+    ]
+  },
+  "CUMA": {
+    type: "upper",
+    label: "💪 OMUZ + KOL",
+    color: "#a78bfa",
+    kcal: 2300,
+    workout: {
+      warmup: "5 dk kardiyo + 10 omuz çevresi + 15 lateral raise hafif",
+      exercises: [
+        { name:"Dumbbell Shoulder Press", detail:"Oturarak", sets:"4", reps:"10-12", kg:"2×8-12 kg", note:"Sırt dik, dirsekler 90°. Kontrollü in.", tag:"👑 Omuz" },
+        { name:"Lateral Raise", detail:"Dumbbell", sets:"3", reps:"12-15", kg:"2×4-6 kg", note:"Dirsekler hafif bükük, omuz hizasına kadar kaldır.", tag:"Yan Omuz" },
+        { name:"Face Pull", detail:"Kablo", sets:"3", reps:"15", kg:"Hafif", note:"İp yüze doğru çek, dirsekler yanda. Arka omuz.", tag:"Arka Omuz" },
+        { name:"Bicep Curl", detail:"Dumbbell", sets:"3", reps:"12", kg:"2×6-10 kg", note:"Yavaş in, kontrollü kaldır. Dirsek sabit.", tag:"Bicep" },
+        { name:"Tricep Pushdown", detail:"Kablo", sets:"3", reps:"12-15", kg:"Hafif-Orta", note:"Dirsek sabit, tam aç tam kapan.", tag:"Tricep" },
+        { name:"Hanging Knee Raise / Crunch", detail:"Zemin", sets:"3", reps:"15-20", kg:"—", note:"Core finisher. Yavaş ve kontrollü.", tag:"Core" },
+      ],
+      cooldown:"Tüm omuz germe pozisyonları, 2 dk nefes egzersizi"
+    },
+    meals: [
+      { time:"07:30", name:"Kahvaltı", emoji:"🌅", items:[
+        {n:"Yumurta (omlet, 3 adet)",g:180,p:22,k:1,f:18},
+        {n:"Tam buğday ekmek",g:60,p:5,k:26,f:2},
+        {n:"Domates+biber",g:150,p:1,k:6,f:0},
+        {n:"Beyaz peynir",g:40,p:6,k:1,f:6},
+      ]},
+      { time:"10:30", name:"Ara Öğün", emoji:"🍌", items:[
+        {n:"Muz",g:120,p:1,k:28,f:0},
+        {n:"Greek yoğurt",g:100,p:10,k:4,f:2},
+      ]},
+      { time:"13:00", name:"Öğle", emoji:"🥩", items:[
+        {n:"Kıymadan köfte (az yağlı)",g:150,p:35,k:0,f:12},
+        {n:"Bulgur pilavı",g:180,p:5,k:40,f:1},
+        {n:"Cacık / yeşillik",g:100,p:3,k:5,f:2},
+      ]},
+      { time:"16:00", name:"Antrenman Öncesi ⚡", emoji:"⚡", items:[
+        {n:"Muz",g:120,p:1,k:30,f:0},
+        {n:"Fıstık ezmeli kraker",g:30,p:4,k:16,f:7},
+      ]},
+      { time:"19:00", name:"Akşam", emoji:"🐔", items:[
+        {n:"Tavuk göğsü",g:150,p:45,k:0,f:5},
+        {n:"Tatlı patates",g:180,p:3,k:36,f:0},
+        {n:"Buharda sebze",g:150,p:2,k:8,f:0},
+        {n:"Zeytinyağı",g:10,p:0,k:0,f:10},
+      ]},
+      { time:"21:30", name:"Gece", emoji:"🌙", items:[
+        {n:"Lor / süzme yoğurt",g:150,p:18,k:5,f:4},
+      ]},
+    ]
+  },
+  "CUMARTESİ": {
+    type: "glute",
+    label: "🏆 GLUTE GÜÇ GÜNÜ",
+    color: "#fb923c",
+    kcal: 2300,
+    workout: {
+      warmup: "10 dk orta tempolu yürüyüş + tam vücut mobilite + fire hydrant",
+      exercises: [
+        { name:"Barbell / Smith Squat", detail:"Derin", sets:"4", reps:"8-10", kg:"20-40 kg", note:"Haftanın en ağır günü! Kalça paralelin altına in.", tag:"👑 PR GÜN" },
+        { name:"Hip Thrust (En Ağır)", detail:"Barel/Smith", sets:"4", reps:"8-10", kg:"MAX", note:"Bugün ağırlık kır! Progresyon zorunlu.", tag:"👑 PR GÜN" },
+        { name:"Stiff Leg Deadlift", detail:"Dumbbell", sets:"3", reps:"10-12", kg:"2×12-18 kg", note:"Bacaklar düz, hamstring gergin hissettir.", tag:"Hamstring" },
+        { name:"Walking Lunge", detail:"Dumbbell", sets:"3", reps:"12 adım/bacak", kg:"2×8-12 kg", note:"Uzun adım at, kalça öne. Diz zemine değsin.", tag:"Fonksiyonel" },
+        { name:"Pulse Squat Finisher 🔥", detail:"Vücut ağırlığı", sets:"2", reps:"30 sn", kg:"—", note:"En sona bırak. Tam yanmayı hissettir!", tag:"🔥 Finisher" },
+      ],
+      cooldown:"10 dk esnetme: her glute pozisyonu min 45sn, köpük silindir"
+    },
+    meals: [
+      { time:"07:30", name:"Kahvaltı (Büyük!)", emoji:"🌅", items:[
+        {n:"Yulaf ezmesi",g:80,p:11,k:54,f:5},
+        {n:"Muz",g:120,p:1,k:28,f:0},
+        {n:"Yumurta (4 adet haşlanmış)",g:200,p:24,k:0,f:20},
+        {n:"Süt",g:200,p:7,k:10,f:4},
+      ]},
+      { time:"10:30", name:"Ara Öğün", emoji:"🍊", items:[
+        {n:"Greek yoğurt",g:150,p:15,k:6,f:3},
+        {n:"Bal + granola",g:30,p:2,k:18,f:3},
+      ]},
+      { time:"13:00", name:"Öğle (Karb Yükle!)", emoji:"🍝", items:[
+        {n:"Tavuk göğsü",g:180,p:54,k:0,f:6},
+        {n:"Esmer pirinç (pişmiş)",g:200,p:4,k:50,f:1},
+        {n:"Zeytinyağlı sebze",g:150,p:2,k:10,f:5},
+      ]},
+      { time:"15:30", name:"Antrenman Öncesi ⚡", emoji:"⚡", items:[
+        {n:"Muz (büyük)",g:150,p:2,k:38,f:0},
+        {n:"Fıstık ezmesi",g:20,p:5,k:4,f:10},
+      ]},
+      { time:"19:00", name:"Antrenman Sonrası 💪", emoji:"💪", items:[
+        {n:"Somon (fırında)",g:180,p:40,k:0,f:20},
+        {n:"Tatlı patates (büyük)",g:250,p:4,k:50,f:0},
+        {n:"Buharda brokoli",g:150,p:3,k:8,f:0},
+        {n:"Zeytinyağı",g:10,p:0,k:0,f:10},
+      ]},
+      { time:"21:30", name:"Gece", emoji:"🌙", items:[
+        {n:"Süzme yoğurt",g:150,p:18,k:5,f:4},
+        {n:"Bal",g:8,p:0,k:6,f:0},
+      ]},
+    ]
+  },
+  "PAZAR": {
+    type: "off",
+    label: "😴 TAM DİNLENME",
+    color: "#94a3b8",
+    kcal: 2100,
+    workout: {
+      warmup:"—",
+      exercises:[],
+      note:"Bugün tam dinlenme! Kaslar büyüyor, yıkma onları.",
+      restActivities:[
+        "😴 9 saat uyku hedefle — GH hormonu bu gece zirve yapar",
+        "🧘 15 dk hafif yoga / nefes egzersizi",
+        "🚶 İstersen 15-20 dk yavaş yürüyüş (zorunlu değil)",
+        "💆 Masaj / köpük silindir — soreness'ı azaltır",
+        "📋 Haftanın programını planla, market listesi hazırla",
+        "💧 2-2.5L su — recovery için kritik",
+      ],
+      cooldown:""
+    },
+    meals: [
+      { time:"09:00", name:"Kahvaltı (Keyifli!)", emoji:"🌅", items:[
+        {n:"Sahanda yumurta (3 adet)",g:180,p:22,k:0,f:18},
+        {n:"Tam buğday ekmek",g:70,p:6,k:30,f:2},
+        {n:"Beyaz peynir",g:50,p:8,k:1,f:8},
+        {n:"Domates+salatalık+zeytin",g:200,p:2,k:8,f:5},
+      ]},
+      { time:"12:00", name:"Öğle", emoji:"🥘", items:[
+        {n:"Mercimek çorbası",g:300,p:12,k:30,f:4},
+        {n:"Tam buğday ekmek",g:50,p:4,k:22,f:1},
+        {n:"Yoğurt (yanında)",g:100,p:4,k:5,f:3},
+      ]},
+      { time:"15:00", name:"Ara Öğün", emoji:"🍇", items:[
+        {n:"Meyve karışımı",g:200,p:1,k:30,f:0},
+        {n:"Badem",g:25,p:5,k:4,f:14},
+        {n:"Greek yoğurt",g:100,p:10,k:4,f:2},
+      ]},
+      { time:"19:00", name:"Akşam", emoji:"🍽️", items:[
+        {n:"Kırmızı et (az yağlı)",g:150,p:38,k:0,f:12},
+        {n:"Patates (fırında)",g:200,p:4,k:38,f:0},
+        {n:"Zeytinyağlı salata",g:150,p:2,k:8,f:8},
+      ]},
+      { time:"21:00", name:"Gece", emoji:"🌙", items:[
+        {n:"Süzme yoğurt",g:150,p:18,k:5,f:4},
+        {n:"Tarçın+bal",g:10,p:0,k:8,f:0},
+      ]},
+    ]
+  },
+};
+
+// Macro alternatives by food category
+const FOOD_DB = [
+  // Proteins
+  {n:"Tavuk göğsü (100g)",p:31,k:0,f:4,cat:"protein"},
+  {n:"Yumurta (1 adet)",p:6,k:0,f:5,cat:"protein"},
+  {n:"Greek yoğurt (100g)",p:10,k:4,f:2,cat:"protein"},
+  {n:"Süzme yoğurt (100g)",p:12,k:3,f:3,cat:"protein"},
+  {n:"Ton balığı (100g)",p:25,k:0,f:2,cat:"protein"},
+  {n:"Somon (100g)",p:22,k:0,f:13,cat:"protein"},
+  {n:"Lor peyniri (100g)",p:12,k:3,f:5,cat:"protein"},
+  {n:"Kırmızı et az yağlı (100g)",p:26,k:0,f:8,cat:"protein"},
+  {n:"Hindi göğsü (100g)",p:29,k:0,f:2,cat:"protein"},
+  // Carbs
+  {n:"Yulaf ezmesi (100g)",p:13,k:67,f:7,cat:"carb"},
+  {n:"Esmer pirinç pişmiş (100g)",p:3,k:25,f:1,cat:"carb"},
+  {n:"Tatlı patates (100g)",p:2,k:20,f:0,cat:"carb"},
+  {n:"Muz (1 orta)",p:1,k:23,f:0,cat:"carb"},
+  {n:"Tam buğday ekmek (1 dilim)",p:4,k:22,f:1,cat:"carb"},
+  {n:"Bulgur pişmiş (100g)",p:4,k:25,f:1,cat:"carb"},
+  {n:"Kepekli makarna pişmiş (100g)",p:5,k:28,f:1,cat:"carb"},
+  // Fats
+  {n:"Zeytinyağı (1 tbsp)",p:0,k:0,f:14,cat:"fat"},
+  {n:"Fıstık ezmesi (1 tbsp)",p:4,k:3,f:8,cat:"fat"},
+  {n:"Badem (25g)",p:5,k:4,f:14,cat:"fat"},
+  {n:"Ceviz (20g)",p:3,k:2,f:13,cat:"fat"},
+  {n:"Avokado (yarım)",p:2,k:6,f:12,cat:"fat"},
+];
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function totalMacros(items){ return items.reduce((a,i)=>({p:a.p+(i.p||0),k:a.k+(i.k||0),f:a.f+(i.f||0),kcal:a.kcal+((i.p||0)*4+(i.k||0)*4+(i.f||0)*9)}),{p:0,k:0,f:0,kcal:0}); }
+
+function MacroBar({label,val,max,color}){
+  const pct = Math.min(100, Math.round((val/max)*100));
+  const over = val > max;
+  return (
+    <div style={{marginBottom:"0.5rem"}}>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:"0.7rem",marginBottom:"0.25rem"}}>
+        <span style={{color:"rgba(255,255,255,0.6)",fontWeight:"700",letterSpacing:"0.5px"}}>{label}</span>
+        <span style={{color: over?"#f87171":color, fontWeight:"800"}}>{val}g <span style={{opacity:0.5}}>/ {max}g</span> {over&&"⚠️"}</span>
+      </div>
+      <div style={{background:"rgba(255,255,255,0.08)",borderRadius:"99px",height:"6px",overflow:"hidden"}}>
+        <div style={{width:`${pct}%`,height:"100%",background: over?"#f87171":color,borderRadius:"99px",transition:"width 0.4s ease"}}/>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN APP ───────────────────────────────────────────────────────────────
+export default function App(){
+  const todayIdx = new Date().getDay(); // 0=Sun
+  const dayMap = [6,0,1,2,3,4,5]; // Sun→PAZAR, Mon→PAZ, ...
+  const defaultDay = DAYS[dayMap[todayIdx]] || "PAZARTESİ";
+
+  const [selectedDay, setSelectedDay] = useState(defaultDay);
+  const [tab, setTab] = useState("plan"); // plan | track | workout | food
+  const [eaten, setEaten] = useState([]); // [{name,p,k,f}]
+  const [input, setInput] = useState({name:"",p:"",k:"",f:""});
+  const [showAlt, setShowAlt] = useState(false);
+  const [altCat, setAltCat] = useState("protein");
+
+  const day = DAY_PLAN[selectedDay];
+  const TARGETS = {p:130, k:270, f:70, kcal:day.kcal};
+
+  const eatenTotals = totalMacros(eaten);
+  const rem = {
+    p: Math.max(0, TARGETS.p - eatenTotals.p),
+    k: Math.max(0, TARGETS.k - eatenTotals.k),
+    f: Math.max(0, TARGETS.f - eatenTotals.f),
+    kcal: Math.max(0, TARGETS.kcal - eatenTotals.kcal),
+  };
+
+  // Suggest foods based on what's most needed
+  const mostNeeded = rem.p > rem.k/3 ? "protein" : rem.k > 100 ? "carb" : "fat";
+
+  function addFood(){
+    if(!input.name) return;
+    setEaten(prev=>[...prev,{name:input.name,p:+input.p||0,k:+input.k||0,f:+input.f||0}]);
+    setInput({name:"",p:"",k:"",f:""});
+  }
+
+  function addFromDB(food){
+    setEaten(prev=>[...prev,{name:food.n,p:food.p,k:food.k,f:food.f}]);
+  }
+
+  const typeColors = {glute:"#f472b6",upper:"#a78bfa",rest:"#34d399",off:"#94a3b8"};
+
+  return (
+    <div style={{
+      minHeight:"100vh",
+      background:"#080b14",
+      color:"#f0eaff",
+      fontFamily:"'DM Sans', 'Segoe UI', sans-serif",
+      maxWidth:"480px",
+      margin:"0 auto",
+      position:"relative",
+    }}>
+      {/* BG Glow */}
+      <div style={{position:"fixed",top:0,left:"50%",transform:"translateX(-50%)",width:"300px",height:"300px",
+        background:`radial-gradient(circle, ${day.color}22 0%, transparent 70%)`,pointerEvents:"none",zIndex:0}}/>
+
+      {/* ── HEADER ── */}
+      <div style={{
+        background:`linear-gradient(160deg, ${day.color}33 0%, rgba(8,11,20,0) 60%)`,
+        borderBottom:"1px solid rgba(255,255,255,0.06)",
+        padding:"1.5rem 1.2rem 1rem",
+        position:"relative",zIndex:1,
+      }}>
+        <div style={{fontSize:"0.65rem",letterSpacing:"2px",color:"rgba(255,255,255,0.4)",marginBottom:"0.3rem",fontWeight:"700"}}>GÜNLÜK PROGRAM</div>
+        <div style={{fontSize:"1.4rem",fontWeight:"900",letterSpacing:"-0.5px"}}>{day.label}</div>
+        {/* Day Selector */}
+        <div style={{display:"flex",gap:"0.35rem",marginTop:"1rem",overflowX:"auto",paddingBottom:"2px"}}>
+          {DAYS.map((d,i)=>{
+            const dp = DAY_PLAN[d];
+            const active = d===selectedDay;
+            return (
+              <button key={d} onClick={()=>{setSelectedDay(d);setTab("plan");}}
+                style={{
+                  flexShrink:0,
+                  padding:"0.4rem 0.6rem",
+                  borderRadius:"10px",
+                  border:`1px solid ${active?dp.color:"rgba(255,255,255,0.08)"}`,
+                  background: active?`${dp.color}22`:"rgba(255,255,255,0.03)",
+                  color: active?dp.color:"rgba(255,255,255,0.45)",
+                  fontSize:"0.6rem",fontWeight:"800",letterSpacing:"0.3px",
+                  cursor:"pointer",
+                  transition:"all 0.15s",
+                }}>
+                <div>{["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"][i]}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── MACRO SUMMARY BAR ── */}
+      <div style={{
+        margin:"1rem 1.2rem",
+        background:"rgba(255,255,255,0.04)",
+        border:"1px solid rgba(255,255,255,0.07)",
+        borderRadius:"16px",
+        padding:"1rem 1.1rem",
+        position:"relative",zIndex:1,
+      }}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.8rem"}}>
+          <span style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:"rgba(255,255,255,0.5)"}}>GÜNLÜK MAKROLAR</span>
+          <span style={{fontSize:"0.85rem",fontWeight:"900",color:day.color}}>{eatenTotals.kcal} <span style={{fontSize:"0.65rem",opacity:0.6}}>/ {TARGETS.kcal} kcal</span></span>
+        </div>
+        <MacroBar label="PROTEİN" val={eatenTotals.p} max={TARGETS.p} color="#f472b6"/>
+        <MacroBar label="KARBONHİDRAT" val={eatenTotals.k} max={TARGETS.k} color="#60a5fa"/>
+        <MacroBar label="YAĞ" val={eatenTotals.f} max={TARGETS.f} color="#fbbf24"/>
+        {/* Remaining pills */}
+        <div style={{display:"flex",gap:"0.5rem",marginTop:"0.8rem",flexWrap:"wrap"}}>
+          {[
+            {l:"Kalan Protein",v:`${rem.p}g`,c:"#f472b6"},
+            {l:"Kalan Karb",v:`${rem.k}g`,c:"#60a5fa"},
+            {l:"Kalan Yağ",v:`${rem.f}g`,c:"#fbbf24"},
+            {l:"Kalan Kalori",v:`${rem.kcal}`,c:day.color},
+          ].map(r=>(
+            <div key={r.l} style={{
+              background:`${r.c}18`,border:`1px solid ${r.c}33`,
+              borderRadius:"8px",padding:"0.3rem 0.7rem",
+              fontSize:"0.62rem",color:r.c,fontWeight:"700",
+            }}>{r.l}: <strong>{r.v}</strong></div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── TABS ── */}
+      <div style={{
+        display:"flex",margin:"0 1.2rem 1rem",
+        background:"rgba(255,255,255,0.04)",
+        borderRadius:"12px",padding:"3px",
+        position:"relative",zIndex:1,
+      }}>
+        {[
+          {id:"plan",label:"📅 Plan"},
+          {id:"workout",label:"🏋️ Spor"},
+          {id:"track",label:"✏️ Takip"},
+          {id:"food",label:"🍽️ Yemek"},
+        ].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{
+            flex:1,padding:"0.55rem 0.2rem",
+            background:tab===t.id?day.color:"transparent",
+            color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",
+            border:"none",borderRadius:"10px",cursor:"pointer",
+            fontSize:"0.62rem",fontWeight:"800",letterSpacing:"0.3px",
+            transition:"all 0.2s",
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      <div style={{padding:"0 1.2rem 6rem",position:"relative",zIndex:1}}>
+
+        {/* ══ PLAN TAB ══ */}
+        {tab==="plan" && (
+          <div>
+            {day.meals.map((meal,mi)=>{
+              const mt = totalMacros(meal.items);
+              return (
+                <div key={mi} style={{
+                  background:"rgba(255,255,255,0.03)",
+                  border:"1px solid rgba(255,255,255,0.07)",
+                  borderRadius:"14px",padding:"1rem",marginBottom:"0.8rem",
+                }}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.7rem"}}>
+                    <div>
+                      <span style={{fontSize:"1.1rem"}}>{meal.emoji}</span>
+                      <span style={{fontSize:"0.8rem",fontWeight:"800",marginLeft:"0.4rem"}}>{meal.name}</span>
+                      <span style={{fontSize:"0.65rem",color:"rgba(255,255,255,0.35)",marginLeft:"0.4rem"}}>{meal.time}</span>
+                    </div>
+                    <span style={{fontSize:"0.7rem",fontWeight:"800",color:day.color}}>{mt.kcal} kcal</span>
+                  </div>
+                  {meal.items.map((item,ii)=>(
+                    <div key={ii} style={{
+                      display:"flex",justifyContent:"space-between",alignItems:"center",
+                      padding:"0.4rem 0",
+                      borderBottom: ii<meal.items.length-1?"1px solid rgba(255,255,255,0.04)":"none",
+                    }}>
+                      <div>
+                        <div style={{fontSize:"0.78rem",fontWeight:"600"}}>{item.n}</div>
+                        <div style={{fontSize:"0.62rem",color:day.color,marginTop:"1px"}}>{item.g}g</div>
+                      </div>
+                      <div style={{fontSize:"0.6rem",color:"rgba(255,255,255,0.35)",fontFamily:"monospace",textAlign:"right"}}>
+                        P:{item.p} K:{item.k} Y:{item.f}
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{
+                    display:"flex",gap:"0.5rem",marginTop:"0.7rem",paddingTop:"0.7rem",
+                    borderTop:"1px solid rgba(255,255,255,0.05)",
+                    flexWrap:"wrap",
+                  }}>
+                    {[
+                      {l:"P",v:mt.p,c:"#f472b6"},
+                      {l:"K",v:mt.k,c:"#60a5fa"},
+                      {l:"Y",v:mt.f,c:"#fbbf24"},
+                    ].map(m=>(
+                      <span key={m.l} style={{
+                        fontSize:"0.65rem",fontWeight:"800",
+                        color:m.c,background:`${m.c}15`,
+                        padding:"0.15rem 0.5rem",borderRadius:"6px",
+                      }}>{m.l}: {m.v}g</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ══ WORKOUT TAB ══ */}
+        {tab==="workout" && (
+          <div>
+            {/* Warmup */}
+            {day.workout.warmup && day.workout.warmup!=="—" && (
+              <div style={{
+                background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",
+                borderRadius:"12px",padding:"0.9rem 1rem",marginBottom:"1rem",
+              }}>
+                <div style={{fontSize:"0.65rem",fontWeight:"800",color:"#34d399",letterSpacing:"1px",marginBottom:"0.3rem"}}>🔥 ISINMA</div>
+                <div style={{fontSize:"0.78rem",color:"rgba(240,234,255,0.7)",lineHeight:"1.5"}}>{day.workout.warmup}</div>
+              </div>
+            )}
+
+            {/* Rest day */}
+            {(day.type==="rest"||day.type==="off") && day.workout.restActivities && (
+              <div style={{
+                background:`${day.color}0f`,border:`1px solid ${day.color}33`,
+                borderRadius:"14px",padding:"1.2rem",marginBottom:"1rem",
+              }}>
+                <div style={{fontSize:"0.8rem",fontWeight:"800",color:day.color,marginBottom:"0.8rem"}}>{day.workout.note}</div>
+                {day.workout.restActivities.map((a,i)=>(
+                  <div key={i} style={{
+                    padding:"0.5rem 0",borderBottom:i<day.workout.restActivities.length-1?"1px solid rgba(255,255,255,0.05)":"none",
+                    fontSize:"0.78rem",color:"rgba(240,234,255,0.7)",lineHeight:"1.4",
+                  }}>{a}</div>
+                ))}
+              </div>
+            )}
+
+            {/* Exercises */}
+            {day.workout.exercises.map((ex,i)=>(
+              <div key={i} style={{
+                background:"rgba(255,255,255,0.03)",
+                border:"1px solid rgba(255,255,255,0.07)",
+                borderRadius:"14px",padding:"1rem",marginBottom:"0.8rem",
+              }}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.6rem"}}>
+                  <div>
+                    <span style={{
+                      fontSize:"0.58rem",fontWeight:"800",
+                      background:`${day.color}22`,color:day.color,
+                      padding:"0.15rem 0.5rem",borderRadius:"6px",marginRight:"0.5rem",
+                    }}>#{i+1}</span>
+                    <span style={{fontSize:"0.9rem",fontWeight:"800"}}>{ex.name}</span>
+                    <div style={{fontSize:"0.65rem",color:"rgba(255,255,255,0.35)",marginTop:"0.2rem",marginLeft:"2px"}}>{ex.detail}</div>
+                  </div>
+                  <span style={{
+                    fontSize:"0.58rem",fontWeight:"800",
+                    background:`${day.color}15`,color:day.color,
+                    padding:"0.2rem 0.55rem",borderRadius:"8px",whiteSpace:"nowrap",marginLeft:"0.5rem",
+                  }}>{ex.tag}</span>
+                </div>
+                <div style={{display:"flex",gap:"0.5rem",marginBottom:"0.7rem",flexWrap:"wrap"}}>
+                  {[{l:"SET",v:ex.sets},{l:"REP",v:ex.reps},{l:"KG",v:ex.kg}].map(s=>(
+                    <div key={s.l} style={{
+                      background:"rgba(255,255,255,0.05)",borderRadius:"8px",
+                      padding:"0.35rem 0.75rem",textAlign:"center",
+                    }}>
+                      <div style={{fontSize:"0.5rem",color:"rgba(255,255,255,0.35)",letterSpacing:"0.8px"}}>{s.l}</div>
+                      <div style={{fontSize:"0.8rem",fontWeight:"900"}}>{s.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{fontSize:"0.72rem",color:"rgba(240,234,255,0.55)",lineHeight:"1.5",paddingTop:"0.6rem",borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+                  💭 {ex.note}
+                </div>
+              </div>
+            ))}
+
+            {/* Cooldown */}
+            {day.workout.cooldown && (
+              <div style={{
+                background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.2)",
+                borderRadius:"12px",padding:"0.9rem 1rem",marginTop:"0.5rem",
+              }}>
+                <div style={{fontSize:"0.65rem",fontWeight:"800",color:"#60a5fa",letterSpacing:"1px",marginBottom:"0.3rem"}}>🧘 SOĞUMA & ESNEME</div>
+                <div style={{fontSize:"0.78rem",color:"rgba(240,234,255,0.7)",lineHeight:"1.5"}}>{day.workout.cooldown}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══ TRACK TAB ══ */}
+        {tab==="track" && (
+          <div>
+            {/* Input */}
+            <div style={{
+              background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",
+              borderRadius:"16px",padding:"1.2rem",marginBottom:"1rem",
+            }}>
+              <div style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:"rgba(255,255,255,0.5)",marginBottom:"0.8rem"}}>✏️ YEDİKLERİNİ GİR</div>
+              <input
+                value={input.name}
+                onChange={e=>setInput(p=>({...p,name:e.target.value}))}
+                placeholder="Yemek adı (örn: Tavuk göğsü)"
+                style={{
+                  width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
+                  borderRadius:"10px",padding:"0.7rem 0.9rem",color:"#f0eaff",fontSize:"0.82rem",
+                  marginBottom:"0.6rem",boxSizing:"border-box",outline:"none",
+                }}
+              />
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0.5rem",marginBottom:"0.8rem"}}>
+                {[{k:"p",l:"Protein (g)",c:"#f472b6"},{k:"k",l:"Karb (g)",c:"#60a5fa"},{k:"f",l:"Yağ (g)",c:"#fbbf24"}].map(f=>(
+                  <div key={f.k}>
+                    <div style={{fontSize:"0.6rem",color:f.c,fontWeight:"700",marginBottom:"0.3rem"}}>{f.l}</div>
+                    <input
+                      type="number" value={input[f.k]}
+                      onChange={e=>setInput(p=>({...p,[f.k]:e.target.value}))}
+                      placeholder="0"
+                      style={{
+                        width:"100%",background:"rgba(255,255,255,0.06)",border:`1px solid ${f.c}33`,
+                        borderRadius:"8px",padding:"0.55rem 0.6rem",color:"#f0eaff",fontSize:"0.82rem",
+                        boxSizing:"border-box",outline:"none",textAlign:"center",
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button onClick={addFood} style={{
+                width:"100%",padding:"0.75rem",
+                background:`linear-gradient(135deg, ${day.color}, ${day.color}aa)`,
+                border:"none",borderRadius:"10px",color:"#fff",
+                fontSize:"0.82rem",fontWeight:"800",cursor:"pointer",letterSpacing:"0.5px",
+              }}>+ Ekle</button>
+            </div>
+
+            {/* Eaten list */}
+            {eaten.length>0 && (
+              <div style={{marginBottom:"1rem"}}>
+                <div style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:"rgba(255,255,255,0.5)",marginBottom:"0.6rem"}}>BUGÜN YEDİKLERİN</div>
+                {eaten.map((item,i)=>(
+                  <div key={i} style={{
+                    display:"flex",justifyContent:"space-between",alignItems:"center",
+                    background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",
+                    borderRadius:"10px",padding:"0.7rem 0.9rem",marginBottom:"0.4rem",
+                  }}>
+                    <div>
+                      <div style={{fontSize:"0.8rem",fontWeight:"700"}}>{item.name}</div>
+                      <div style={{fontSize:"0.62rem",color:"rgba(255,255,255,0.35)",marginTop:"2px"}}>
+                        P:{item.p}g · K:{item.k}g · Y:{item.f}g · {item.p*4+item.k*4+item.f*9} kcal
+                      </div>
+                    </div>
+                    <button onClick={()=>setEaten(prev=>prev.filter((_,j)=>j!==i))} style={{
+                      background:"rgba(248,113,113,0.15)",border:"none",color:"#f87171",
+                      borderRadius:"8px",padding:"0.3rem 0.6rem",cursor:"pointer",fontSize:"0.7rem",fontWeight:"700",
+                    }}>✕</button>
+                  </div>
+                ))}
+                {/* Running total */}
+                <div style={{
+                  background:`${day.color}11`,border:`1px solid ${day.color}33`,
+                  borderRadius:"12px",padding:"0.9rem 1rem",marginTop:"0.8rem",
+                }}>
+                  <div style={{fontSize:"0.65rem",fontWeight:"800",color:day.color,letterSpacing:"1px",marginBottom:"0.5rem"}}>TOPLAM</div>
+                  <div style={{display:"flex",gap:"0.8rem",flexWrap:"wrap"}}>
+                    {[
+                      {l:"Kalori",v:`${eatenTotals.kcal} kcal`,c:day.color},
+                      {l:"Protein",v:`${eatenTotals.p}g`,c:"#f472b6"},
+                      {l:"Karb",v:`${eatenTotals.k}g`,c:"#60a5fa"},
+                      {l:"Yağ",v:`${eatenTotals.f}g`,c:"#fbbf24"},
+                    ].map(t=>(
+                      <div key={t.l} style={{textAlign:"center"}}>
+                        <div style={{fontSize:"0.9rem",fontWeight:"900",color:t.c}}>{t.v}</div>
+                        <div style={{fontSize:"0.55rem",color:"rgba(255,255,255,0.35)",letterSpacing:"0.5px"}}>{t.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick add from DB */}
+            <div style={{marginTop:"0.5rem"}}>
+              <div style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:"rgba(255,255,255,0.5)",marginBottom:"0.6rem"}}>⚡ HIZLI EKLE (Gıda Veritabanı)</div>
+              <div style={{display:"flex",gap:"0.5rem",marginBottom:"0.7rem"}}>
+                {["protein","carb","fat"].map(c=>(
+                  <button key={c} onClick={()=>setAltCat(c)} style={{
+                    flex:1,padding:"0.45rem",
+                    background:altCat===c?"rgba(255,255,255,0.1)":"rgba(255,255,255,0.04)",
+                    border:`1px solid ${altCat===c?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.07)"}`,
+                    borderRadius:"8px",color:altCat===c?"#fff":"rgba(255,255,255,0.4)",
+                    fontSize:"0.65rem",fontWeight:"800",cursor:"pointer",letterSpacing:"0.3px",
+                  }}>{c==="protein"?"🥩 Protein":c==="carb"?"🍚 Karb":"🥑 Yağ"}</button>
+                ))}
+              </div>
+              {FOOD_DB.filter(f=>f.cat===altCat).map((food,i)=>(
+                <div key={i} style={{
+                  display:"flex",justifyContent:"space-between",alignItems:"center",
+                  background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",
+                  borderRadius:"10px",padding:"0.65rem 0.9rem",marginBottom:"0.35rem",
+                }}>
+                  <div>
+                    <div style={{fontSize:"0.75rem",fontWeight:"700"}}>{food.n}</div>
+                    <div style={{fontSize:"0.6rem",color:"rgba(255,255,255,0.3)",marginTop:"1px"}}>
+                      P:{food.p}g · K:{food.k}g · Y:{food.f}g
+                    </div>
+                  </div>
+                  <button onClick={()=>addFromDB(food)} style={{
+                    background:`${day.color}22`,border:`1px solid ${day.color}44`,
+                    color:day.color,borderRadius:"8px",padding:"0.3rem 0.7rem",
+                    fontSize:"0.7rem",fontWeight:"800",cursor:"pointer",
+                  }}>+ Ekle</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══ FOOD TAB — Kalan Makroya Göre Öneri ══ */}
+        {tab==="food" && (
+          <div>
+            {/* Remaining summary */}
+            <div style={{
+              background:`${day.color}0f`,border:`1px solid ${day.color}33`,
+              borderRadius:"14px",padding:"1rem",marginBottom:"1.2rem",
+            }}>
+              <div style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:day.color,marginBottom:"0.7rem"}}>
+                📊 KALAN MAKROLARIN
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.5rem"}}>
+                {[
+                  {l:"Kalan Kalori",v:`${rem.kcal} kcal`,c:day.color},
+                  {l:"Kalan Protein",v:`${rem.p}g`,c:"#f472b6"},
+                  {l:"Kalan Karb",v:`${rem.k}g`,c:"#60a5fa"},
+                  {l:"Kalan Yağ",v:`${rem.f}g`,c:"#fbbf24"},
+                ].map(r=>(
+                  <div key={r.l} style={{background:"rgba(255,255,255,0.04)",borderRadius:"10px",padding:"0.7rem",textAlign:"center"}}>
+                    <div style={{fontSize:"1.1rem",fontWeight:"900",color:r.c}}>{r.v}</div>
+                    <div style={{fontSize:"0.58rem",color:"rgba(255,255,255,0.35)",letterSpacing:"0.5px",marginTop:"2px"}}>{r.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Smart meal suggestions */}
+            <div style={{fontSize:"0.7rem",fontWeight:"800",letterSpacing:"1px",color:"rgba(255,255,255,0.5)",marginBottom:"0.8rem"}}>
+              🤖 KALAN MAKROLARA GÖRE ÖNERİLER
+            </div>
+
+            {rem.kcal < 100 && (
+              <div style={{
+                background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",
+                borderRadius:"12px",padding:"1rem",textAlign:"center",
+              }}>
+                <div style={{fontSize:"1.5rem"}}>🎉</div>
+                <div style={{fontSize:"0.85rem",fontWeight:"800",color:"#34d399",marginTop:"0.3rem"}}>Günlük hedefine ulaştın!</div>
+                <div style={{fontSize:"0.72rem",color:"rgba(255,255,255,0.5)",marginTop:"0.3rem"}}>Tebrikler, tutarlılık kazandırır 💪</div>
+              </div>
+            )}
+
+            {rem.kcal >= 100 && (
+              <>
+                {/* Protein suggestion */}
+                {rem.p > 20 && (
+                  <div style={{
+                    background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)",
+                    borderRadius:"14px",padding:"1rem",marginBottom:"0.8rem",
+                  }}>
+                    <div style={{fontSize:"0.65rem",fontWeight:"800",color:"#f472b6",marginBottom:"0.6rem",letterSpacing:"0.5px"}}>
+                      🥩 PROTEİN ÖNERİSİ — {rem.p}g daha lazım
+                    </div>
+                    {[
+                      rem.p>=30 && {option:"Tavuk göğsü (ızgara)", amount:`${Math.round(rem.p/0.31)}g`, note:"Yağsız protein kaynağı #1"},
+                      rem.p>=20 && {option:"Greek yoğurt + 2 yumurta", amount:"150g + 2 adet", note:"Gece öğünü için mükemmel"},
+                      rem.p>=15 && {option:"Ton balığı (konserve)", amount:`${Math.round(rem.p/0.25)}g`, note:"Hızlı hazır protein"},
+                      rem.p<20 && {option:"Süzme yoğurt", amount:"100g", note:"Gece öncesi yavaş protein"},
+                    ].filter(Boolean).slice(0,2).map((s,i)=>(
+                      <div key={i} style={{
+                        background:"rgba(255,255,255,0.04)",borderRadius:"10px",
+                        padding:"0.7rem 0.8rem",marginBottom:"0.4rem",
+                        display:"flex",justifyContent:"space-between",alignItems:"center",
+                      }}>
+                        <div>
+                          <div style={{fontSize:"0.78rem",fontWeight:"700"}}>{s.option}</div>
+                          <div style={{fontSize:"0.62rem",color:"rgba(255,255,255,0.4)",marginTop:"1px"}}>{s.note}</div>
+                        </div>
+                        <div style={{fontSize:"0.7rem",fontWeight:"800",color:"#f472b6"}}>{s.amount}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Carb suggestion */}
+                {rem.k > 30 && (
+                  <div style={{
+                    background:"rgba(96,165,250,0.08)",border:"1px solid rgba(96,165,250,0.2)",
+                    borderRadius:"14px",padding:"1rem",marginBottom:"0.8rem",
+                  }}>
+                    <div style={{fontSize:"0.65rem",fontWeight:"800",color:"#60a5fa",marginBottom:"0.6rem",letterSpacing:"0.5px"}}>
+                      🍚 KARBONHİDRAT ÖNERİSİ — {rem.k}g daha lazım
+                    </div>
+                    {[
+                      rem.k>=60 && {option:"Esmer pirinç (pişmiş)", amount:`${Math.round(rem.k/0.25)}g`, note:"En temiz karb kaynağı"},
+                      rem.k>=40 && {option:"Tatlı patates (fırında)", amount:`${Math.round(rem.k/0.20)}g`, note:"Vitamin + karb combo"},
+                      rem.k>=20 && {option:"Muz + yulaf", amount:"1 muz + 30g yulaf", note:"Hızlı + yavaş karb"},
+                      rem.k<20 && {option:"Meyve (elma/portakal)", amount:"1 orta boy", note:"Günü tamamlamak için"},
+                    ].filter(Boolean).slice(0,2).map((s,i)=>(
+                      <div key={i} style={{
+                        background:"rgba(255,255,255,0.04)",borderRadius:"10px",
+                        padding:"0.7rem 0.8rem",marginBottom:"0.4rem",
+                        display:"flex",justifyContent:"space-between",alignItems:"center",
+                      }}>
+                        <div>
+                          <div style={{fontSize:"0.78rem",fontWeight:"700"}}>{s.option}</div>
+                          <div style={{fontSize:"0.62rem",color:"rgba(255,255,255,0.4)",marginTop:"1px"}}>{s.note}</div>
+                        </div>
+                        <div style={{fontSize:"0.7rem",fontWeight:"800",color:"#60a5fa"}}>{s.amount}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Fat suggestion */}
+                {rem.f > 10 && (
+                  <div style={{
+                    background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)",
+                    borderRadius:"14px",padding:"1rem",marginBottom:"0.8rem",
+                  }}>
+                    <div style={{fontSize:"0.65rem",fontWeight:"800",color:"#fbbf24",marginBottom:"0.6rem",letterSpacing:"0.5px"}}>
+                      🥑 YAĞ ÖNERİSİ — {rem.f}g daha lazım
+                    </div>
+                    {[
+                      rem.f>=20 && {option:"Avokado (yarım)", amount:"70g", note:"Sağlıklı yağ + potasyum"},
+                      rem.f>=10 && {option:"Ceviz / badem", amount:`${Math.round(rem.f/0.65)}g`, note:"Omega-3 + sağlıklı yağ"},
+                      {option:"Zeytinyağı (sos)", amount:`${Math.ceil(rem.f/14)} yemek kaşığı`, note:"Salata veya yemeğe ekle"},
+                    ].filter(Boolean).slice(0,2).map((s,i)=>(
+                      <div key={i} style={{
+                        background:"rgba(255,255,255,0.04)",borderRadius:"10px",
+                        padding:"0.7rem 0.8rem",marginBottom:"0.4rem",
+                        display:"flex",justifyContent:"space-between",alignItems:"center",
+                      }}>
+                        <div>
+                          <div style={{fontSize:"0.78rem",fontWeight:"700"}}>{s.option}</div>
+                          <div style={{fontSize:"0.62rem",color:"rgba(255,255,255,0.4)",marginTop:"1px"}}>{s.note}</div>
+                        </div>
+                        <div style={{fontSize:"0.7rem",fontWeight:"800",color:"#fbbf24"}}>{s.amount}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Ready meal combo */}
+                <div style={{
+                  background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.09)",
+                  borderRadius:"14px",padding:"1rem",
+                }}>
+                  <div style={{fontSize:"0.65rem",fontWeight:"800",color:"rgba(255,255,255,0.5)",marginBottom:"0.7rem",letterSpacing:"0.5px"}}>
+                    💡 HAZIR COMBO ÖNERİSİ (Kalan {rem.kcal} kcal için)
+                  </div>
+                  {rem.kcal > 400 ? (
+                    <div style={{fontSize:"0.78rem",color:"rgba(240,234,255,0.7)",lineHeight:"1.7"}}>
+                      <div>🍗 <strong>Tavuk göğsü</strong> {Math.round(rem.p*0.6/0.31)}g ({Math.round(rem.p*0.6)}g protein)</div>
+                      <div>🍚 <strong>Esmer pirinç</strong> {Math.round(rem.k*0.5/0.25)}g ({Math.round(rem.k*0.5)}g karb)</div>
+                      <div>🥗 <strong>Zeytinyağlı salata</strong> — 1 yemek kaşığı zeytinyağı</div>
+                      <div style={{marginTop:"0.5rem",fontSize:"0.65rem",color:"rgba(255,255,255,0.3)"}}>Bu kombinasyon kalan makrolarını dengeli karşılar ✓</div>
+                    </div>
+                  ) : rem.kcal > 150 ? (
+                    <div style={{fontSize:"0.78rem",color:"rgba(240,234,255,0.7)",lineHeight:"1.7"}}>
+                      <div>🥛 <strong>Süzme yoğurt</strong> 150g</div>
+                      <div>🍌 <strong>Yarım muz</strong> veya 1 tsp bal</div>
+                      <div>🥜 <strong>10g ceviz</strong></div>
+                      <div style={{marginTop:"0.5rem",fontSize:"0.65rem",color:"rgba(255,255,255,0.3)"}}>Gece öğünü olarak ideal ✓</div>
+                    </div>
+                  ) : (
+                    <div style={{fontSize:"0.78rem",color:"rgba(240,234,255,0.7)"}}>
+                      🍎 Küçük bir meyve veya 10g fıstık ezmesi yeter!
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom nav hint */}
+      <div style={{
+        position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
+        width:"100%",maxWidth:"480px",
+        background:"linear-gradient(to top, #080b14 60%, transparent)",
+        padding:"1rem 1.2rem",
+        pointerEvents:"none",zIndex:10,
+      }}>
+        <div style={{
+          background:"rgba(255,255,255,0.04)",
+          backdropFilter:"blur(20px)",
+          border:"1px solid rgba(255,255,255,0.07)",
+          borderRadius:"14px",padding:"0.6rem 1rem",
+          display:"flex",justifyContent:"center",gap:"0.5rem",
+          fontSize:"0.62rem",color:"rgba(255,255,255,0.25)",fontWeight:"600",
+          pointerEvents:"none",
+        }}>
+          <span>18 yaş · 158cm · 51kg</span>
+          <span>·</span>
+          <span>2.300 kcal hedef</span>
+          <span>·</span>
+          <span style={{color:day.color}}>P:130 K:270 Y:70</span>
+        </div>
+      </div>
+    </div>
+  );
+}
